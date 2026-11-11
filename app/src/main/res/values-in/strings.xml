@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Galaxy Island</string>
+    <string name="service_name">Layanan Overlay Galaxy Island</string>
+    <string name="accessibility_service_name">Layanan Sentuh &amp; Gestur Galaxy Island</string>
+    <string name="accessibility_service_description">Mendeteksi interaksi status bar dan menyediakan gestur mulus di sekitar lubang kamera Samsung Anda.</string>
+    <string name="notification_listener_service_name">Interceptor Notifikasi Galaxy Island</string>
+    <string name="channel_name">Galaxy Island Aktif</string>
+    <string name="channel_description">Menjaga Dynamic Island berjalan mulus di layar Samsung Anda</string>
+    <string name="notification_active_title">Galaxy Island aktif</string>
+    <string name="notification_active_text">Memeluk lubang kamera Anda</string>
+</resources>

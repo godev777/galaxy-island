@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.PowerManager
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +21,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -38,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.galaxy.dynamicisland.data.AppLanguage
 import com.galaxy.dynamicisland.data.IslandPreferences
 import com.galaxy.dynamicisland.manager.IslandEventManager
 import com.galaxy.dynamicisland.service.IslandOverlayService
@@ -56,6 +58,9 @@ fun HomeScreen(preferences: IslandPreferences) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val isEnabled by preferences.isIslandEnabled.collectAsState()
+    val appLang by preferences.appLanguage.collectAsState()
+
+    val isIndo = appLang == AppLanguage.INDONESIAN
 
     var hasOverlayPermission by remember {
         mutableStateOf(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(context) else true)
@@ -68,21 +73,51 @@ fun HomeScreen(preferences: IslandPreferences) {
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
-        // App Header
-        Text(
-            text = "Galaxy Island",
-            color = TextWhite,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "Dynamic Island khusus Samsung Galaxy S24 Ultra",
-            color = SamsungSuperFastCyan,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium
-        )
+        // App Header & Language Switcher
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Galaxy Island",
+                    color = TextWhite,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = if (isIndo) "Dynamic Island khusus Samsung Galaxy S24 Ultra" else "Dynamic Island for Samsung Galaxy S24 Ultra",
+                    color = SamsungSuperFastCyan,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            // Language Selector Chips
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                FilterChip(
+                    selected = appLang == AppLanguage.ENGLISH,
+                    onClick = { preferences.setLanguage(AppLanguage.ENGLISH) },
+                    label = { Text("EN", fontSize = 11.sp) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = SamsungSuperFastCyan,
+                        selectedLabelColor = PureBlack
+                    )
+                )
+                FilterChip(
+                    selected = appLang == AppLanguage.INDONESIAN,
+                    onClick = { preferences.setLanguage(AppLanguage.INDONESIAN) },
+                    label = { Text("ID", fontSize = 11.sp) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = SamsungSuperFastCyan,
+                        selectedLabelColor = PureBlack
+                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
 
         // Master Island Card
         Card(
@@ -97,13 +132,21 @@ fun HomeScreen(preferences: IslandPreferences) {
             ) {
                 Column {
                     Text(
-                        text = if (isEnabled) "Island Aktif" else "Island Nonaktif",
+                        text = if (isEnabled) {
+                            if (isIndo) "Island Aktif" else "Island Active"
+                        } else {
+                            if (isIndo) "Island Nonaktif" else "Island Inactive"
+                        },
                         color = if (isEnabled) SamsungChargingGreen else TextMuted,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = if (isEnabled) "Memeluk lubang kamera S24 Ultra" else "Ketuk untuk menyalakan",
+                        text = if (isEnabled) {
+                            if (isIndo) "Memeluk lubang kamera S24 Ultra" else "Hugging camera cutout"
+                        } else {
+                            if (isIndo) "Ketuk untuk menyalakan" else "Tap switch to enable"
+                        },
                         color = TextMuted,
                         fontSize = 12.sp
                     )
@@ -137,13 +180,19 @@ fun HomeScreen(preferences: IslandPreferences) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // Permissions Section
-        Text("Izin Diperlukan", color = TextWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = if (isIndo) "Izin Diperlukan" else "Required Permissions",
+            color = TextWhite,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
         Spacer(modifier = Modifier.height(10.dp))
 
         PermissionItem(
-            title = "1. Tampilkan di Atas Aplikasi Lain",
-            subtitle = "Wajib agar island bisa melayang di atas layar",
+            title = if (isIndo) "1. Tampilkan di Atas Aplikasi Lain" else "1. Draw Over Other Apps",
+            subtitle = if (isIndo) "Wajib agar island bisa melayang di atas layar" else "Allows floating overlay over all apps",
             isGranted = hasOverlayPermission,
+            actionLabel = if (isIndo) "Izinkan" else "Grant",
             onGrantClick = {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     val intent = Intent(
@@ -156,9 +205,10 @@ fun HomeScreen(preferences: IslandPreferences) {
         )
 
         PermissionItem(
-            title = "2. Akses Notifikasi & Media",
-            subtitle = "Untuk membaca pesan masuk, OTP, dan Spotify",
+            title = if (isIndo) "2. Akses Notifikasi & Media" else "2. Notification & Media Access",
+            subtitle = if (isIndo) "Untuk membaca pesan masuk, OTP, dan Spotify" else "Reads incoming messages, OTP & Spotify controls",
             isGranted = true,
+            actionLabel = if (isIndo) "Izinkan" else "Grant",
             onGrantClick = {
                 val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                 context.startActivity(intent)
@@ -166,9 +216,10 @@ fun HomeScreen(preferences: IslandPreferences) {
         )
 
         PermissionItem(
-            title = "3. Pengecualian Hemat Baterai (One UI)",
-            subtitle = "Agar tidak dimatikan paksa oleh sistem Samsung",
+            title = if (isIndo) "3. Pengecualian Hemat Baterai (One UI)" else "3. Battery Optimization Exemption",
+            subtitle = if (isIndo) "Agar tidak dimatikan paksa oleh sistem Samsung" else "Prevents Samsung One UI from killing the island",
             isGranted = true,
+            actionLabel = if (isIndo) "Izinkan" else "Grant",
             onGrantClick = {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
@@ -182,8 +233,17 @@ fun HomeScreen(preferences: IslandPreferences) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // Live Simulation Playground
-        Text("Uji Coba & Simulasi Fitur", color = TextWhite, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        Text("Klik tombol di bawah untuk langsung mencoba animasi di S24 Ultra Anda:", color = TextMuted, fontSize = 12.sp)
+        Text(
+            text = if (isIndo) "Uji Coba & Simulasi Fitur" else "Feature Testing & Simulation",
+            color = TextWhite,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = if (isIndo) "Klik tombol di bawah untuk langsung mencoba animasi di S24 Ultra Anda:" else "Tap buttons below to preview live animations on your S24 Ultra:",
+            color = TextMuted,
+            fontSize = 12.sp
+        )
         Spacer(modifier = Modifier.height(12.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -202,7 +262,7 @@ fun HomeScreen(preferences: IslandPreferences) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("🎵 Musik + Dual", color = SamsungChargingGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(if (isIndo) "🎵 Musik + Dual" else "🎵 Music + Dual", color = SamsungChargingGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -215,7 +275,7 @@ fun HomeScreen(preferences: IslandPreferences) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("💬 Salin OTP", color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(if (isIndo) "💬 Salin OTP" else "💬 Copy OTP", color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
 
             Button(
@@ -224,7 +284,7 @@ fun HomeScreen(preferences: IslandPreferences) {
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("📞 Telepon WA", color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(if (isIndo) "📞 Panggilan WA" else "📞 WhatsApp Call", color = TextWhite, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -236,7 +296,7 @@ fun HomeScreen(preferences: IslandPreferences) {
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("🧹 Bersihkan Island", fontSize = 12.sp)
+            Text(if (isIndo) "🧹 Bersihkan Island" else "🧹 Clear Island", fontSize = 12.sp)
         }
 
         Spacer(modifier = Modifier.height(30.dp))
@@ -248,6 +308,7 @@ fun PermissionItem(
     title: String,
     subtitle: String,
     isGranted: Boolean,
+    actionLabel: String,
     onGrantClick: () -> Unit
 ) {
     Card(
@@ -272,7 +333,7 @@ fun PermissionItem(
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text(
-                    text = if (isGranted) "Aktif" else "Izinkan",
+                    text = if (isGranted) "✓" else actionLabel,
                     color = if (isGranted) SamsungChargingGreen else PureBlack,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold

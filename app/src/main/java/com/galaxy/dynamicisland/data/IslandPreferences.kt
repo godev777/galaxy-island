@@ -11,6 +11,11 @@ enum class CompanionSide {
     LEFT
 }
 
+enum class AppLanguage {
+    ENGLISH,
+    INDONESIAN
+}
+
 class IslandPreferences(context: Context) {
 
     private val prefs: SharedPreferences =
@@ -46,6 +51,12 @@ class IslandPreferences(context: Context) {
 
     private val _companionGap = MutableStateFlow(prefs.getInt(KEY_COMPANION_GAP, 8)) // dp
     val companionGap: StateFlow<Int> = _companionGap.asStateFlow()
+
+    // Language Preference (English / Indonesian)
+    private val _appLanguage = MutableStateFlow(
+        AppLanguage.valueOf(prefs.getString(KEY_APP_LANGUAGE, AppLanguage.ENGLISH.name) ?: AppLanguage.ENGLISH.name)
+    )
+    val appLanguage: StateFlow<AppLanguage> = _appLanguage.asStateFlow()
 
     // S24 Ultra Exclusive Features
     private val _isSPenHoverEnabled = MutableStateFlow(prefs.getBoolean(KEY_SPEN_HOVER, true))
@@ -107,6 +118,11 @@ class IslandPreferences(context: Context) {
         _companionGap.value = gap
     }
 
+    fun setLanguage(lang: AppLanguage) {
+        prefs.edit().putString(KEY_APP_LANGUAGE, lang.name).apply()
+        _appLanguage.value = lang
+    }
+
     fun setSPenHoverEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_SPEN_HOVER, enabled).apply()
         _isSPenHoverEnabled.value = enabled
@@ -132,6 +148,7 @@ class IslandPreferences(context: Context) {
         private const val KEY_COMPANION_ENABLED = "companion_enabled"
         private const val KEY_COMPANION_SIDE = "companion_side"
         private const val KEY_COMPANION_GAP = "companion_gap"
+        private const val KEY_APP_LANGUAGE = "app_language"
         private const val KEY_SPEN_HOVER = "spen_hover"
         private const val KEY_CHARGING_45W = "charging_45w"
         private const val KEY_AUTO_OTP = "auto_otp"
