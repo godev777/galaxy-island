@@ -243,13 +243,17 @@ fun CalibrationScreen(preferences: IslandPreferences) {
                 ) {
                     Column(modifier = Modifier.weight(1f).padding(end = 10.dp)) {
                         Text(
-                            if (isIndo) "Companion Bubble (Bola Kecil)" else "Companion Bubble (Dual Island)",
+                            if (isIndo) "Bola Pendamping (Opsional ON/OFF)" else "Companion Bubble (Optional ON/OFF)",
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            if (isIndo) "Muncul saat 2 aktivitas berjalan bersamaan" else "Displays secondary live activity beside the punch-hole",
+                            if (isIndo) {
+                                if (isCompanionEnabled) "Aktif: Menampilkan bola mini di samping kamera" else "Nonaktif: Hanya 1 Pill Utama (Single Pill murni)"
+                            } else {
+                                if (isCompanionEnabled) "Active: Displays secondary mini bubble" else "Inactive: Clean Single Pill mode only"
+                            },
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 11.sp
                         )

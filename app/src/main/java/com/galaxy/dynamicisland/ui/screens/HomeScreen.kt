@@ -266,7 +266,70 @@ fun HomeScreen(preferences: IslandPreferences) {
             }
         }
 
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Pill Style Selector: Single Pill (1 Kapsul) vs Dual Pill
+        val isCompanionEnabled by preferences.isCompanionBubbleEnabled.collectAsState()
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                    Text(
+                        text = if (isIndo) {
+                            if (isCompanionEnabled) "Mode: Dual Pill (Bola Samping ON)" else "Mode: Single Pill (1 Kapsul Bersih)"
+                        } else {
+                            if (isCompanionEnabled) "Mode: Dual Pill (Side Bubble ON)" else "Mode: Single Pill (1 Pill Only)"
+                        },
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (isIndo) {
+                            if (isCompanionEnabled) "Bola samping muncul saat 2 aktivitas aktif" else "Hanya 1 pill memeluk kamera (tanpa bola samping)"
+                        } else {
+                            if (isCompanionEnabled) "Secondary bubble appears when 2 activities run" else "Clean single pill hugging the punch-hole"
+                        },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp
+                    )
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FilterChip(
+                        selected = !isCompanionEnabled,
+                        onClick = { preferences.setCompanionBubbleEnabled(false) },
+                        label = { Text("1 Pill", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = SamsungSuperFastCyan,
+                            selectedLabelColor = PureBlack
+                        )
+                    )
+
+                    FilterChip(
+                        selected = isCompanionEnabled,
+                        onClick = { preferences.setCompanionBubbleEnabled(true) },
+                        label = { Text("Dual", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = SamsungSuperFastCyan,
+                            selectedLabelColor = PureBlack
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
 
         // Permissions Section
         Text(

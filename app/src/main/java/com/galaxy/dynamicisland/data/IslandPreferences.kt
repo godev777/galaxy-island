@@ -46,8 +46,8 @@ class IslandPreferences(context: Context) {
     private val _cornerRadius = MutableStateFlow(prefs.getInt(KEY_CORNER_RADIUS, CutoutPreset.S24_ULTRA.cornerRadius))
     val cornerRadius: StateFlow<Int> = _cornerRadius.asStateFlow()
 
-    // Companion Bubble (The small side bubble)
-    private val _isCompanionBubbleEnabled = MutableStateFlow(prefs.getBoolean(KEY_COMPANION_ENABLED, true))
+    // Companion Bubble (The small side bubble - default false for Single Pill mode)
+    private val _isCompanionBubbleEnabled = MutableStateFlow(prefs.getBoolean(KEY_COMPANION_ENABLED, false))
     val isCompanionBubbleEnabled: StateFlow<Boolean> = _isCompanionBubbleEnabled.asStateFlow()
 
     private val _companionSide = MutableStateFlow(
@@ -116,6 +116,11 @@ class IslandPreferences(context: Context) {
             height = preset.collapsedHeight,
             radius = preset.cornerRadius
         )
+    }
+
+    fun setCompanionBubbleEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_COMPANION_ENABLED, enabled).apply()
+        _isCompanionBubbleEnabled.value = enabled
     }
 
     fun setCompanionBubbleConfig(enabled: Boolean, side: CompanionSide, gap: Int) {
