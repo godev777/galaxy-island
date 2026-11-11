@@ -3,8 +3,7 @@ package com.galaxy.dynamicisland.ui.island
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -91,9 +90,7 @@ fun DynamicIslandRootView(
         label = "radius"
     )
 
-    // Gesture tracking variables
-    var totalDragX by remember { mutableFloatStateOf(0f) }
-    var totalDragY by remember { mutableFloatStateOf(0f) }
+
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(companionGap.dp),
@@ -116,42 +113,11 @@ fun DynamicIslandRootView(
                 .width(animatedWidth)
                 .height(animatedHeight)
                 .clip(RoundedCornerShape(animatedRadius))
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            IslandEventManager.toggleExpand()
-                        }
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = {
-                            totalDragX = 0f
-                            totalDragY = 0f
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            totalDragX += dragAmount.x
-                            totalDragY += dragAmount.y
-                        },
-                        onDragEnd = {
-                            val threshold = 40f
-                            if (abs(totalDragY) > abs(totalDragX)) {
-                                if (totalDragY > threshold) {
-                                    // Swipe Down -> Expand
-                                    IslandEventManager.expand()
-                                } else if (totalDragY < -threshold) {
-                                    // Swipe Up -> Collapse / Dismiss
-                                    IslandEventManager.collapse()
-                                }
-                            } else {
-                                if (totalDragX > threshold || totalDragX < -threshold) {
-                                    // Swipe Left / Right -> Dismiss current notification or next
-                                    IslandEventManager.setPrimaryEvent(null)
-                                }
-                            }
-                        }
-                    )
+                .clickable(
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    indication = null
+                ) {
+                    IslandEventManager.toggleExpand()
                 }
         ) {
             if (isExpanded) {

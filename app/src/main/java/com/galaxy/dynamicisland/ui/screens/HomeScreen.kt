@@ -25,6 +25,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -54,6 +56,7 @@ import com.galaxy.dynamicisland.data.ThemeMode
 import com.galaxy.dynamicisland.manager.IslandEventManager
 import com.galaxy.dynamicisland.service.IslandOverlayService
 import com.galaxy.dynamicisland.ui.components.bounceClick
+import com.galaxy.dynamicisland.ui.theme.PureBlack
 import com.galaxy.dynamicisland.ui.theme.SamsungChargingGreen
 import com.galaxy.dynamicisland.ui.theme.SamsungSuperFastCyan
 import com.galaxy.dynamicisland.ui.theme.WarningRed
