@@ -4,6 +4,7 @@ import com.galaxy.dynamicisland.data.CompanionBubbleData
 import com.galaxy.dynamicisland.data.IslandEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 object IslandEventManager {
 
     private val scope = CoroutineScope(Dispatchers.Main)
+    private var autoCollapseJob: Job? = null
 
     // Current primary activity displayed on the main pill
     private val _primaryEvent = MutableStateFlow<IslandEvent?>(null)
@@ -29,20 +31,37 @@ object IslandEventManager {
     private val _isExpanded = MutableStateFlow(false)
     val isExpanded: StateFlow<Boolean> = _isExpanded.asStateFlow()
 
+    // Whether Island is currently doing a Heads-Up pop/stretch animation
+    private val _isHeadsUpPulse = MutableStateFlow(false)
+    val isHeadsUpPulse: StateFlow<Boolean> = _isHeadsUpPulse.asStateFlow()
+
     // Face Unlock / Screen unlock pulse animation trigger
     private val _isUnlockAnimationActive = MutableStateFlow(false)
     val isUnlockAnimationActive: StateFlow<Boolean> = _isUnlockAnimationActive.asStateFlow()
 
     fun setPrimaryEvent(event: IslandEvent?, autoCollapseSeconds: Long? = null) {
+        autoCollapseJob?.cancel()
         _primaryEvent.value = event
-        if (event != null && autoCollapseSeconds != null) {
-            scope.launch {
-                delay(autoCollapseSeconds * 1000)
-                if (_primaryEvent.value == event) {
-                    collapse()
-                    _primaryEvent.value = null
+
+        if (event != null) {
+            // Trigger dynamic bouncy heads-up expansion on arrival!
+            _isHeadsUpPulse.value = true
+
+            if (autoCollapseSeconds != null) {
+                autoCollapseJob = scope.launch {
+                    delay(autoCollapseSeconds * 1000)
+                    _isHeadsUpPulse.value = false
+                    if (!_isExpanded.value) {
+                        // After heads up duration, if it wasn't media or call, clear event
+                        if (event is IslandEvent.Notification || event is IslandEvent.Charging || event is IslandEvent.SystemToast) {
+                            _primaryEvent.value = null
+                        }
+                    }
                 }
             }
+        } else {
+            _isHeadsUpPulse.value = false
+            _isExpanded.value = false
         }
     }
 
@@ -52,14 +71,20 @@ object IslandEventManager {
 
     fun expand() {
         _isExpanded.value = true
+        _isHeadsUpPulse.value = false
     }
 
     fun collapse() {
         _isExpanded.value = false
+        _isHeadsUpPulse.value = false
     }
 
     fun toggleExpand() {
-        _isExpanded.value = !_isExpanded.value
+        if (_isExpanded.value) {
+            collapse()
+        } else {
+            expand()
+        }
     }
 
     fun triggerUnlockAnimation() {
@@ -143,8 +168,10 @@ object IslandEventManager {
     }
 
     fun clearAll() {
+        autoCollapseJob?.cancel()
         _primaryEvent.value = null
         _companionBubble.value = null
         _isExpanded.value = false
+        _isHeadsUpPulse.value = false
     }
 }

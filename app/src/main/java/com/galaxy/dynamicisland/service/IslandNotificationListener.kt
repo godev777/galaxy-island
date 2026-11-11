@@ -20,14 +20,26 @@ class IslandNotificationListener : NotificationListenerService() {
 
     private val otpPattern = Pattern.compile("(?i)(?:otp|kode|code|pin|verifikasi)[^0-9]*([0-9]{4,8})")
 
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        initMediaListener()
+    }
+
     override fun onCreate() {
         super.onCreate()
+        initMediaListener()
+    }
+
+    private fun initMediaListener() {
         try {
-            mediaSessionManager = getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
-            val component = ComponentName(this, IslandNotificationListener::class.java)
-            mediaSessionManager?.addOnActiveSessionsChangedListener({ controllers ->
-                handleActiveMediaSessions(controllers)
-            }, component)
+            if (mediaSessionManager == null) {
+                mediaSessionManager = getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
+                val component = ComponentName(this, IslandNotificationListener::class.java)
+                mediaSessionManager?.addOnActiveSessionsChangedListener({ controllers ->
+                    handleActiveMediaSessions(controllers)
+                }, component)
+                handleActiveMediaSessions(mediaSessionManager?.getActiveSessions(component))
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -40,10 +52,22 @@ class IslandNotificationListener : NotificationListenerService() {
         val notification = sbn.notification ?: return
         val extras = notification.extras ?: return
 
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: ""
+        // Extract title & text with fallbacks for WhatsApp/Telegram/MessagingStyle
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+            ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString() ?: ""
+        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+            ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+            ?: extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
 
         if (title.isBlank() && text.isBlank()) return
+
+        // Ignore non-alerting low priority system background pings
+        if (notification.flags and Notification.FLAG_FOREGROUND_SERVICE_BIT != 0 &&
+            notification.category != Notification.CATEGORY_CALL &&
+            notification.category != Notification.CATEGORY_TRANSPORT) {
+            // Background service pings
+            return
+        }
 
         // 1. Check for Active VoIP or Phone Call
         val isCall = (notification.category == Notification.CATEGORY_CALL) ||
@@ -72,7 +96,7 @@ class IslandNotificationListener : NotificationListenerService() {
             otpCode = matcher.group(1)
         }
 
-        // 3. Normal Notification or OTP Alert
+        // 3. Normal Notification or OTP Alert (Triggers real-time bouncy heads-up expansion!)
         val notifEvent = IslandEvent.Notification(
             key = sbn.key,
             packageName = sbn.packageName,

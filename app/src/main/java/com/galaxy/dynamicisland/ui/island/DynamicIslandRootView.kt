@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.galaxy.dynamicisland.data.CompanionSide
+import com.galaxy.dynamicisland.data.IslandEvent
 import com.galaxy.dynamicisland.data.IslandPreferences
 import com.galaxy.dynamicisland.manager.IslandEventManager
 import kotlin.math.abs
@@ -36,6 +36,7 @@ fun DynamicIslandRootView(
     val primaryEvent by IslandEventManager.primaryEvent.collectAsState()
     val companionBubble by IslandEventManager.companionBubble.collectAsState()
     val isExpanded by IslandEventManager.isExpanded.collectAsState()
+    val isHeadsUp by IslandEventManager.isHeadsUpPulse.collectAsState()
 
     val pillWidthPref by preferences.pillWidth.collectAsState()
     val pillHeightPref by preferences.pillHeight.collectAsState()
@@ -45,9 +46,26 @@ fun DynamicIslandRootView(
     val isCompanionEnabled by preferences.isCompanionBubbleEnabled.collectAsState()
 
     // Smooth Spring physics animations for S24 Ultra 120Hz display
-    val targetWidth = if (isExpanded) 360.dp else pillWidthPref.dp
-    val targetHeight = if (isExpanded) 190.dp else pillHeightPref.dp
-    val targetRadius = if (isExpanded) 28.dp else cornerRadiusPref.dp
+    val targetWidth = when {
+        isExpanded -> 360.dp
+        isHeadsUp && primaryEvent is IslandEvent.Notification -> 270.dp
+        isHeadsUp && primaryEvent is IslandEvent.Charging -> 230.dp
+        isHeadsUp && primaryEvent is IslandEvent.SystemToast -> 210.dp
+        else -> pillWidthPref.dp
+    }
+
+    val targetHeight = when {
+        isExpanded -> 190.dp
+        isHeadsUp && primaryEvent is IslandEvent.Notification -> 44.dp
+        isHeadsUp && primaryEvent is IslandEvent.Charging -> 42.dp
+        else -> pillHeightPref.dp
+    }
+
+    val targetRadius = when {
+        isExpanded -> 28.dp
+        isHeadsUp -> 22.dp
+        else -> cornerRadiusPref.dp
+    }
 
     val animatedWidth by animateDpAsState(
         targetValue = targetWidth,
@@ -142,7 +160,10 @@ fun DynamicIslandRootView(
                     onFocusChange = onUpdateWindowFocus
                 )
             } else {
-                CollapsedIslandView(event = primaryEvent)
+                CollapsedIslandView(
+                    event = primaryEvent,
+                    isHeadsUp = isHeadsUp
+                )
             }
         }
 

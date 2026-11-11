@@ -16,6 +16,12 @@ enum class AppLanguage {
     INDONESIAN
 }
 
+enum class ThemeMode {
+    SYSTEM,
+    LIGHT,
+    DARK
+}
+
 class IslandPreferences(context: Context) {
 
     private val prefs: SharedPreferences =
@@ -51,6 +57,12 @@ class IslandPreferences(context: Context) {
 
     private val _companionGap = MutableStateFlow(prefs.getInt(KEY_COMPANION_GAP, 8)) // dp
     val companionGap: StateFlow<Int> = _companionGap.asStateFlow()
+
+    // Day & Night Theme Mode for Settings
+    private val _themeMode = MutableStateFlow(
+        ThemeMode.valueOf(prefs.getString(KEY_THEME_MODE, ThemeMode.DARK.name) ?: ThemeMode.DARK.name)
+    )
+    val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
     // Language Preference (English / Indonesian)
     private val _appLanguage = MutableStateFlow(
@@ -118,6 +130,11 @@ class IslandPreferences(context: Context) {
         _companionGap.value = gap
     }
 
+    fun setThemeMode(mode: ThemeMode) {
+        prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
+        _themeMode.value = mode
+    }
+
     fun setLanguage(lang: AppLanguage) {
         prefs.edit().putString(KEY_APP_LANGUAGE, lang.name).apply()
         _appLanguage.value = lang
@@ -148,6 +165,7 @@ class IslandPreferences(context: Context) {
         private const val KEY_COMPANION_ENABLED = "companion_enabled"
         private const val KEY_COMPANION_SIDE = "companion_side"
         private const val KEY_COMPANION_GAP = "companion_gap"
+        private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_APP_LANGUAGE = "app_language"
         private const val KEY_SPEN_HOVER = "spen_hover"
         private const val KEY_CHARGING_45W = "charging_45w"

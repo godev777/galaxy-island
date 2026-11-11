@@ -9,9 +9,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,16 +31,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.galaxy.dynamicisland.data.IslandEvent
-import com.galaxy.dynamicisland.service.NetworkSpeedMonitor
-import com.galaxy.dynamicisland.service.WeatherManager
 import com.galaxy.dynamicisland.ui.theme.ElectricBlue
 import com.galaxy.dynamicisland.ui.theme.NeonPink
 import com.galaxy.dynamicisland.ui.theme.PureBlack
 import com.galaxy.dynamicisland.ui.theme.SamsungChargingGreen
 import com.galaxy.dynamicisland.ui.theme.SamsungSuperFastCyan
+import com.galaxy.dynamicisland.ui.theme.TextMuted
 import com.galaxy.dynamicisland.ui.theme.TextWhite
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -50,6 +50,7 @@ import java.util.Locale
 @Composable
 fun CollapsedIslandView(
     event: IslandEvent?,
+    isHeadsUp: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -58,9 +59,106 @@ fun CollapsedIslandView(
             .background(PureBlack),
         contentAlignment = Alignment.Center
     ) {
-        when (event) {
-            // 1. Music / Media Player Active
-            is IslandEvent.Media -> {
+        when {
+            // 1. Heads-Up Notification Banner (Stretches out with bouncing spring!)
+            isHeadsUp && event is IslandEvent.Notification -> {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .clip(CircleShape)
+                                .background(SamsungSuperFastCyan.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("💬", fontSize = 14.sp)
+                        }
+
+                        Column {
+                            Text(
+                                text = event.title,
+                                color = TextWhite,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = event.text,
+                                color = TextMuted,
+                                fontSize = 10.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    if (event.isOTP && event.otpCode != null) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(SamsungSuperFastCyan)
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "OTP ${event.otpCode}",
+                                color = PureBlack,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 2. Heads-Up 45W Charging (Stretches out with Cyan Glow!)
+            isHeadsUp && event is IslandEvent.Charging -> {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "⚡",
+                            color = SamsungSuperFastCyan,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = if (event.isSuperFast2_0) "Super Fast 2.0 (45W)" else "Fast Charging",
+                            color = SamsungSuperFastCyan,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Text(
+                        text = "${event.batteryPercentage}%",
+                        color = SamsungSuperFastCyan,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // 3. Music / Media Player Active
+            event is IslandEvent.Media -> {
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
@@ -68,7 +166,6 @@ fun CollapsedIslandView(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Left side: Mini Album Art / Note
                     Box(
                         modifier = Modifier
                             .size(18.dp)
@@ -79,37 +176,12 @@ fun CollapsedIslandView(
                         Text("♪", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
 
-                    // Right side: Live Equalizer Waveform Bars (dancing to music)
                     AnimatedEqualizerWaveform()
                 }
             }
 
-            // 2. Samsung Super Fast Charging 2.0 (45W)
-            is IslandEvent.Charging -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "⚡",
-                        color = if (event.isSuperFast2_0) SamsungSuperFastCyan else SamsungChargingGreen,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "${event.batteryPercentage}%",
-                        color = if (event.isSuperFast2_0) SamsungSuperFastCyan else SamsungChargingGreen,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            // 3. VoIP & Phone Call
-            is IslandEvent.Call -> {
+            // 4. VoIP & Phone Call
+            event is IslandEvent.Call -> {
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
@@ -127,8 +199,8 @@ fun CollapsedIslandView(
                 }
             }
 
-            // 4. WhatsApp / SMS OTP Alert
-            is IslandEvent.Notification -> {
+            // 5. Normal Collapsed Notification Pill
+            event is IslandEvent.Notification -> {
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
@@ -146,7 +218,7 @@ fun CollapsedIslandView(
                 }
             }
 
-            // 5. Default Idle Widgets: Clock, Weather, or Net Speed
+            // 6. Default Idle Cutout Widgets (Clock / Weather)
             else -> {
                 IdleCutoutContent()
             }
