@@ -62,7 +62,7 @@ class IslandNotificationListener : NotificationListenerService() {
         if (title.isBlank() && text.isBlank()) return
 
         // Ignore non-alerting low priority system background pings
-        if (notification.flags and Notification.FLAG_FOREGROUND_SERVICE_BIT != 0 &&
+        if (notification.flags and Notification.FLAG_FOREGROUND_SERVICE != 0 &&
             notification.category != Notification.CATEGORY_CALL &&
             notification.category != Notification.CATEGORY_TRANSPORT) {
             // Background service pings

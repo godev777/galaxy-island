@@ -77,7 +77,7 @@ fun HomeScreen(preferences: IslandPreferences) {
     // Re-check permissions whenever user returns to the app from Settings!
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == LifecycleEvent.ON_RESUME) {
+            if (event == Lifecycle.Event.ON_RESUME) {
                 hasOverlayPermission = checkOverlay(context)
                 hasNotificationAccess = checkNotificationAccess(context)
                 hasBatteryExemption = checkBatteryExemption(context)
