@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="island_black">#000000</color>
+    <color name="island_surface">#121212</color>
+    <color name="island_surface_variant">#1E1E1E</color>
+    <color name="island_accent">#00E676</color>
+    <color name="island_blue">#2979FF</color>
+    <color name="island_purple">#BB86FC</color>
+    <color name="island_amber">#FFAB00</color>
+    <color name="island_red">#FF5252</color>
+</resources>

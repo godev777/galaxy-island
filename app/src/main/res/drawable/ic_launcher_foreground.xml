@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Pill Shape -->
+    <path
+        android:fillColor="#1A1A1A"
+        android:strokeColor="#00E676"
+        android:strokeWidth="2.5"
+        android:pathData="M30,42 L78,42 A12,12 0 0,1 90,54 L90,54 A12,12 0 0,1 78,66 L30,66 A12,12 0 0,1 18,54 L18,54 A12,12 0 0,1 30,42 Z" />
+    <!-- Camera Punch Hole -->
+    <path
+        android:fillColor="#000000"
+        android:strokeColor="#333333"
+        android:strokeWidth="1.5"
+        android:pathData="M54,54m-7,0a7,7 0 1,1 14,0a7,7 0 1,1 -14,0" />
+    <!-- Glowing Pulse Ring -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M30,54m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0" />
+    <path
+        android:fillColor="#2979FF"
+        android:pathData="M78,54m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0" />
+</vector>
